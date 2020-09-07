@@ -85,7 +85,9 @@ class Board
 
             if @grid[i][j].neighbour_bomb_number == 0
                 @grid[i][j].seen_value = "_"
-                neighbours(idx).each { |index| reveal_tile(index)}
+                neighbours(idx).each do |index| 
+                    reveal_tile(index) unless @board.[](index).flagged == true
+                end
             else
                 @grid[i][j].seen_value = @grid[i][j].neighbour_bomb_number.to_s
             end

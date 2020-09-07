@@ -4,9 +4,9 @@ class Tile
 
     attr_accessor :bomb, :flagged, :revealed, :seen_value, :neighbour_bomb_number
 
-    def initialize(bomb = false)
+    def initialize
 
-        @bomb = bomb
+        @bomb = false
         @flagged = false
         @revealed = false
         @neighbour_bomb_number = 0
