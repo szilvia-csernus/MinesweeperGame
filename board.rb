@@ -1,4 +1,4 @@
-require 'byebug'
+require 'colorize'
 require_relative 'tile'
 
 class Board
@@ -31,14 +31,15 @@ class Board
     end
 
     def render
-        puts "  #{(0...@size).to_a.join(" ")}"
+        puts "  #{(0...@size).to_a.join(" ")}".blue
         @grid.each.with_index do |row, i|
-            print "#{i}"
+            print "#{i}".blue
             row.each do |tile|
                 print " #{tile.seen_value}"
             end
             puts
         end
+        puts "---------------------"
     end
 
     def valid_index?(idx)
@@ -84,15 +85,22 @@ class Board
             @grid[i][j].revealed = true
 
             if @grid[i][j].neighbour_bomb_number == 0
-                @grid[i][j].seen_value = "_"
+                @grid[i][j].seen_value = " "
                 neighbours(idx).each do |index| 
-                    reveal_tile(index) unless @board.[](index).flagged == true
+                    reveal_tile(index) unless self.[](index).flagged == true
                 end
             else
-                @grid[i][j].seen_value = @grid[i][j].neighbour_bomb_number.to_s
+                @grid[i][j].seen_value = @grid[i][j].neighbour_bomb_number.to_s.green
             end
         end
     end
 
+    def reveal_bombs
+        @grid.each do |row|
+            row.each do |tile|
+                tile.seen_value = "B".red if tile.bomb == true
+            end
+        end
+    end
 
 end
