@@ -22,7 +22,7 @@ class MinesweeperGame
         if lost?
             puts "You stepped on a bomb. Sorry, the game is over."
         elsif solved?
-            puts "Congratulations! You win."
+            puts "Congratulations! You won."
         end
         puts "---------------------"
     end
@@ -39,7 +39,7 @@ class MinesweeperGame
         unless lost?
             case @user.action
             when 'r'
-                @board.reveal_tile(@user.coordinate)
+                @board.grid[i][j].reveal_tile
             when 'f'
                 @board.grid[i][j].flagged = true
                 @board.grid[i][j].seen_value = "F".yellow

@@ -6,8 +6,8 @@ class Board
     attr_accessor :grid
 
     def initialize(size)
-        @grid = Array.new(size) do
-            Array.new(size) { Tile.new }
+        @grid = Array.new(size) do |i|
+            Array.new(size) { |j| Tile.new(self, [i,j] ) }
         end
         @size = size
         
@@ -54,32 +54,10 @@ class Board
         neighbour_indices
     end
 
-    def neighbour_bomb_count(idx)
-        neighbours(idx).count { |index| self.[](index).bomb == true}
-    end
-
     def fill_bomb_numbers
         @grid.each.with_index do |row, i|
             row.each.with_index do |tile, j|
-                tile.adj_bomb_number = neighbour_bomb_count([i,j])
-            end
-        end
-    end
-
-    def reveal_tile(idx)
-        i, j = idx
-        if @grid[i][j].revealed == true
-            return
-        else
-            @grid[i][j].revealed = true
-
-            if @grid[i][j].adj_bomb_number == 0
-                @grid[i][j].seen_value = " "
-                neighbours(idx).each do |index| 
-                    reveal_tile(index) unless self.[](index).flagged == true
-                end
-            else
-                @grid[i][j].seen_value = @grid[i][j].adj_bomb_number.to_s.green
+                tile.adj_bomb_number = tile.neighbour_bomb_count
             end
         end
     end
