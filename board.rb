@@ -10,6 +10,7 @@ class Board
             Array.new(size) { Tile.new }
         end
         @size = size
+        
         random_fill
         fill_bomb_numbers
     end
@@ -17,12 +18,7 @@ class Board
     def random_fill
         places = (0...@size).to_a.product((0...@size).to_a)
         bomb_places = places.sample(@size)
-
-        @grid.each.with_index do |row, i|
-            row.each.with_index do |tile, j|
-                tile.bomb = true if bomb_places.include?([i,j])
-            end
-        end
+        bomb_places.each { |pos| self.[](pos).bomb = true}
     end
 
     def [](pos)
@@ -43,8 +39,7 @@ class Board
     end
 
     def valid_index?(idx)
-        i, j = idx
-        i.between?(0, @size-1) && j.between?(0, @size-1)
+        idx.all? { |i| i.between?(0, @size-1)}
     end
 
     def neighbours(idx)
@@ -60,19 +55,13 @@ class Board
     end
 
     def neighbour_bomb_count(idx)
-        i, j = idx
-        count = neighbours(idx).count do |index| 
-            x,y = index
-            @grid[x][y].bomb == true
-        end
-        @grid[i][j].neighbour_bomb_number = count
-        count
+        neighbours(idx).count { |index| self.[](index).bomb == true}
     end
 
     def fill_bomb_numbers
         @grid.each.with_index do |row, i|
             row.each.with_index do |tile, j|
-                tile.neighbour_bomb_number = neighbour_bomb_count([i,j])
+                tile.adj_bomb_number = neighbour_bomb_count([i,j])
             end
         end
     end
@@ -84,13 +73,13 @@ class Board
         else
             @grid[i][j].revealed = true
 
-            if @grid[i][j].neighbour_bomb_number == 0
+            if @grid[i][j].adj_bomb_number == 0
                 @grid[i][j].seen_value = " "
                 neighbours(idx).each do |index| 
                     reveal_tile(index) unless self.[](index).flagged == true
                 end
             else
-                @grid[i][j].seen_value = @grid[i][j].neighbour_bomb_number.to_s.green
+                @grid[i][j].seen_value = @grid[i][j].adj_bomb_number.to_s.green
             end
         end
     end

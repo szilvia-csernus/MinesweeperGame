@@ -16,10 +16,10 @@ class MinesweeperGame
 
     def run
         @board.render
-        take_turn until (game_over || solved?)
+        take_turn until (lost? || solved?)
         @board.reveal_bombs
         @board.render
-        if game_over
+        if lost?
             puts "You stepped on a bomb. Sorry, the game is over."
         elsif solved?
             puts "Congratulations! You win."
@@ -36,7 +36,7 @@ class MinesweeperGame
 
     def evaluate_input
         i, j = @user.coordinate
-        unless game_over
+        unless lost?
             case @user.action
             when 'r'
                 @board.reveal_tile(@user.coordinate)
@@ -55,7 +55,7 @@ class MinesweeperGame
         end
     end
 
-    def game_over
+    def lost?
         if @user.action == 'r' && @board.[](@user.coordinate).bomb == true
             return true
         end
