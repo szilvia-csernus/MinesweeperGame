@@ -1,3 +1,4 @@
+require 'yaml'
 require 'colorize'
 require_relative 'tile'
 require_relative 'board'
@@ -43,6 +44,8 @@ class MinesweeperGame
             when 'f'
                 @board.grid[i][j].flagged = true
                 @board.grid[i][j].seen_value = "F".yellow
+            when 's'
+                save
             end
         end
     end
@@ -73,6 +76,7 @@ class MinesweeperGame
         
         until action_valid?
             puts "Enter 'r' for reveal a space or 'f' for flag a bomb. Don't step on a bomb!"
+            puts "You also can save the game by entering 's'."
             @user.action = gets.chomp
         end
 
@@ -85,7 +89,25 @@ class MinesweeperGame
     end
 
     def action_valid?
-        @user.action == "r" || @user.action == "f"
+        valid = ["f", "r", "s"]
+        valid.include?(@user.action)
+    end
+
+    def save
+        puts "File name:"
+        filename = gets.chomp
+        File.write(filename, YAML.dump(self))
+        puts "Enter 'ctrl c' if you don't want to continue the game!"
+        sleep(10)
+    end
+
+end
+
+if $PROGRAM_NAME == __FILE__
+    if ARGV.empty?
+        MinesweeperGame.new(9).run
+    else
+        YAML.load_file(ARGV.shift).run
     end
 
 end
