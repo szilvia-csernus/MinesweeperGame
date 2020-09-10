@@ -5,19 +5,19 @@ class Board
 
     attr_accessor :grid
 
-    def initialize(size)
+    def initialize(size, bomb_nr)
         @grid = Array.new(size) do |i|
             Array.new(size) { |j| Tile.new(self, [i,j] ) }
         end
         @size = size
         
-        random_fill
+        random_fill(bomb_nr)
         fill_bomb_numbers
     end
 
-    def random_fill
+    def random_fill(bomb_nr)
         places = (0...@size).to_a.product((0...@size).to_a)
-        bomb_places = places.sample(@size)
+        bomb_places = places.sample(bomb_nr)
         bomb_places.each { |pos| self.[](pos).bomb = true}
     end
 

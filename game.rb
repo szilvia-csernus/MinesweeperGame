@@ -9,8 +9,15 @@ class MinesweeperGame
 
     attr_reader :board, :user
 
-    def initialize(board_size = 9)
-        @board = Board.new(board_size)
+    LEVELS = {
+        beginner: { size: 9, bomb_nr: 10},
+        intermediate: { size: 12, bomb_nr: 20},
+        expert: { size: 15, bomb_nr: 30}
+    }
+
+    def initialize(difficulty_level)
+        level = LEVELS[difficulty_level]
+        @board = Board.new(level[:size], level[:bomb_nr])
         @user = User.new
         
     end
@@ -105,7 +112,7 @@ end
 
 if $PROGRAM_NAME == __FILE__
     if ARGV.empty?
-        MinesweeperGame.new(9).run
+        MinesweeperGame.new(:intermediate).run
     else
         YAML.load_file(ARGV.shift).run
     end
