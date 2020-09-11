@@ -138,7 +138,9 @@ if $PROGRAM_NAME == __FILE__
         end
         MinesweeperGame.new(level).run
     else
-        YAML.load_file(ARGV.shift).run
+        file = ARGV.shift
+        YAML.load_file(file).run
+        File.delete(file)
     end
 
 end
