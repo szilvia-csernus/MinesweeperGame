@@ -2,6 +2,7 @@ require_relative 'board'
 
 class Tile
 
+    attr_reader :pos
     attr_accessor :bomb, :flagged, :revealed, :seen_value, :adj_bomb_number
 
     def initialize(board, pos)

@@ -3,13 +3,14 @@ require_relative 'tile'
 
 class Board
 
-    attr_accessor :grid
+    attr_accessor :grid, :cursor
 
     def initialize(size, bomb_nr)
         @grid = Array.new(size) do |i|
             Array.new(size) { |j| Tile.new(self, [i,j] ) }
         end
         @size = size
+        @cursor = [0,0]
         
         random_fill(bomb_nr)
         fill_bomb_numbers
@@ -27,11 +28,13 @@ class Board
     end
 
     def render
-        puts "  #{(0...@size).to_a.join(" ")}".blue
-        @grid.each.with_index do |row, i|
-            print "#{i}".blue
+        @grid.each do |row|
             row.each do |tile|
-                print " #{tile.seen_value}"
+                if tile.pos == @cursor
+                    print " #{tile.seen_value.colorize(:background => :blue)}"
+                else 
+                    print " #{tile.seen_value}"
+                end
             end
             puts
         end

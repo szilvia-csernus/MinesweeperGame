@@ -1,11 +1,13 @@
 require 'yaml'
+require 'remedy'
 require 'colorize'
 require_relative 'tile'
 require_relative 'board'
-require_relative 'user_interface'
+require_relative 'user'
 
 
 class MinesweeperGame
+    include Remedy
 
     attr_reader :board, :user
 
@@ -17,43 +19,22 @@ class MinesweeperGame
 
     def initialize(difficulty_level)
         level = LEVELS[difficulty_level]
-        @board = Board.new(level[:size], level[:bomb_nr])
+        @size = level[:size]
+        @board = Board.new(@size, level[:bomb_nr])
         @user = User.new
+        
         
     end
 
-    def run
-        @board.render
-        take_turn until (lost? || solved?)
-        @board.reveal_bombs
-        @board.render
-        if lost?
-            puts "You stepped on a bomb. Sorry, the game is over."
-        elsif solved?
-            puts "Congratulations! You won."
-        end
-        puts "---------------------"
-    end
-
-    def take_turn
-        input
-        evaluate_input
-        @board.render
-
-    end
-
-    def evaluate_input
-        i, j = @user.coordinate
-        unless lost?
-            case @user.action
-            when 'r'
-                @board.grid[i][j].reveal_tile
-            when 'f'
-                @board.grid[i][j].flagged = true
-                @board.grid[i][j].seen_value = "F".yellow
-            when 's'
-                save
-            end
+    def evaluate_input(action, pos)
+        case action
+        when 'r'
+            @board[pos].reveal_tile
+        when 'f'
+            @board[pos].flagged = true
+            @board[pos].seen_value = "F".yellow
+        when 's'
+            save
         end
     end
 
@@ -65,54 +46,97 @@ class MinesweeperGame
         end
     end
 
-    def lost?
-        if @user.action == 'r' && @board.[](@user.coordinate).bomb == true
-            return true
-        end
-        false
+    def bombed?(pos)
+        @board[pos].bomb
     end
 
-    def input
-        @user.coordinate = []
-        @user.action = ''
+    def run
+        @start_time = Time.now
+        user_input = Interaction.new
+        x = y = 0
+        pos = [x, y]
+        @board.cursor = pos
+        system("clear")
+        puts @board.render
+        puts "Please move using your keyboard arrow keys. When you are on the space you want selected, press an action key"
+        puts "Action keys - r: reveal, f: flag, s: save"
+        user_input.loop do |key|
+            system("clear")
 
-        until coordinate_valid?
-            puts "Please enter a coordinate: two numbers, separated by a comma. (e.g. 3,4)"
-            @user.coordinate = gets.chomp.split(",").map { |num| Integer(num)}
-        end
-        
-        until action_valid?
-            puts "Enter 'r' for reveal a space or 'f' for flag a bomb. Don't step on a bomb!"
-            puts "You also can save the game by entering 's'."
-            @user.action = gets.chomp
-        end
+            case key.to_s
+            when "right"
+                y += 1 unless y >= (@size - 1)
+            when "left"
+                y -= 1 unless y <= 0
+            when "up"
+                x -= 1 unless x <= 0
+            when "down"
+                x += 1 unless x >= (@size - 1)
+            when "r"
+                if bombed?(pos)
+                    game_over
+                    return
+                end
+                evaluate_input("r", pos)
+            when "f"
+                evaluate_input("f", pos)
+            when "s"
+                evaluate_input("s", pos)
+            end
 
+            if solved?
+                @end_time = Time.now
+                @board.reveal_bombs
+                @board.render
+                if solved?
+                    puts "Congratulations, you won! It took #{@end_time - @start_time} seconds."
+                end
+                puts "---------------------"
+                return
+            end
+
+            pos = [x, y]
+            @board.cursor = [x, y]
+            puts @board.render
+            puts "Action keys - r: reveal, f: flag, s: save"
+        end
     end
 
-    def coordinate_valid?
-        @user.coordinate.is_a?(Array) && 
-            @user.coordinate.length == 2 &&
-            @board.valid_index?(@user.coordinate)
-    end
-
-    def action_valid?
-        valid = ["f", "r", "s"]
-        valid.include?(@user.action)
+    def game_over
+        @board.reveal_bombs
+        @board.render
+        puts "You stepped on a bomb. Sorry, the game is over."
     end
 
     def save
         puts "File name:"
         filename = gets.chomp
         File.write(filename, YAML.dump(self))
-        puts "Enter 'ctrl c' if you don't want to continue the game!"
-        sleep(10)
+        puts "Enter 'ctrl c' if you don't want to continue the game, otherwise, wait ;)"
+        sleep(4)
     end
 
 end
 
 if $PROGRAM_NAME == __FILE__
     if ARGV.empty?
-        MinesweeperGame.new(:intermediate).run
+        answers = ["b", "i", "e"]
+        inp = ""
+        until answers.include?(inp)
+            system("clear")
+            puts "What level would you like to play?"
+            puts "Beginner: 'b', Intermediate: 'i', Expert: 'e'"
+            inp = gets.chomp
+            case inp
+            when 'b'
+                level = :beginner
+            when 'i'
+                level = :intermediate
+            when 'e'
+                level = :expert
+            end
+        end
+        MinesweeperGame.new(level).run
     else
         YAML.load_file(ARGV.shift).run
     end
